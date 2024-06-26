@@ -1,6 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
+const userDetailRoutes = require("./routes/userDetail");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -26,6 +27,7 @@ mongoose
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/user-details", userDetailRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
