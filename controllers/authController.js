@@ -99,6 +99,66 @@ const resendOtp = async (req, res) => {
   }
 };
 
+const forgetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: "BAD REQUEST", message: "Invalid email", data: null });
+    }
+    const otp = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    user.otp = otp;
+    user.otpExpiresAt = otpExpiresAt;
+    user.isForget = true;
+    await user.save();
+    await sendOtp(email, otp);
+
+    res.status(200).json({
+      status: "OK",
+      message: "Check your email for OTP to reset password",
+      data: null,
+    });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ status: "BAD REQUEST", message: error.message, data: null });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await User.findOne({ email, otp });
+
+    if (!user || user.otpExpiresAt < new Date()) {
+      return res.status(400).json({
+        status: "BAD REQUEST",
+        message: "Invalid or expired OTP",
+        data: null,
+      });
+    }
+
+    const password = await bcrypt.hash(newPassword, 10);
+
+    user.password = password;
+    user.otp = null;
+    user.otpExpiresAt = null;
+    user.isForget = false;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ status: "OK", message: "Password reset successfully" });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ status: "BAD REQUEST", message: error.message, data: null });
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -108,7 +168,9 @@ const login = async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res
+        .status(401)
+        .json({ status: "Failed", message: "Invalid password" });
     }
 
     if (!user.isVerified) {
@@ -119,19 +181,41 @@ const login = async (req, res) => {
       });
     }
 
+    if (user.isForget) {
+      return res.status(403).json({
+        status: "FORBIDDEN",
+        message:
+          "Account forget password. Please change password your account first.",
+        data: null,
+      });
+    }
+
     const token = jwt.sign({ id: user._id }, process.env.SECRET, {
       expiresIn: "1h",
     });
 
     // Set token in cookies
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    });
-    res.json({ message: "Login successful" });
-    // res.json({ token });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    // });
+    // res.json({ message: "Login successful" });
+    const response = {
+      status: "OK",
+      message: "Login Succesfully",
+      data: {
+        email: email,
+        token: token,
+      },
+    };
+
+    res.status(200).json(response);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({
+      status: "Failed",
+      message: "Login Failed",
+      data: error.message,
+    });
   }
 };
 
@@ -142,7 +226,11 @@ const getUser = async (req, res) => {
       .status(200)
       .json({ status: "OK", message: "Successfully get data", data: user });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({
+      status: "Failed",
+      message: "Failed get data",
+      data: error.message,
+    });
   }
 };
 
@@ -154,7 +242,11 @@ const getUserById = async (req, res) => {
       .status(200)
       .json({ status: "OK", message: "Successfully get data", data: user });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({
+      status: "Failed",
+      message: "Failed get data",
+      data: error.message,
+    });
   }
 };
 
@@ -165,4 +257,6 @@ module.exports = {
   resendOtp,
   getUser,
   getUserById,
+  resetPassword,
+  forgetPassword,
 };
