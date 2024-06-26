@@ -3,11 +3,13 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 const app = express();
 
 app.use(cookieParser()); // agar token tersimpan di cookies ketika login
 const PORT = process.env.PORT || 3000;
+app.use(cors());
 
 // connectDB;
 
