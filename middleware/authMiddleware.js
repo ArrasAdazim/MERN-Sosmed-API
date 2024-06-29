@@ -22,6 +22,7 @@ const authenticate = async (req, res, next) => {
         .json({ status: "UNATHORIZED", message: "Invalid token.", data: null });
     }
 
+    req.userId = user.id; //agar bisa dapat userId
     req.user = user;
     next();
   } catch (error) {

@@ -220,11 +220,22 @@ const login = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
+  const { email } = req.query;
+
   try {
-    const user = await User.find({});
-    res
-      .status(200)
-      .json({ status: "OK", message: "Successfully get data", data: user });
+    let users;
+    if (email) {
+      const regex = new RegExp(email, "i");
+      users = await User.find({ email: { $regex: regex } });
+    } else {
+      users = await User.find({});
+    }
+
+    res.status(200).json({
+      status: "OK",
+      message: "Successfully get data",
+      data: users,
+    });
   } catch (error) {
     res.status(400).json({
       status: "Failed",
@@ -237,7 +248,6 @@ const getUser = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    console.log("data user : ", user);
     res
       .status(200)
       .json({ status: "OK", message: "Successfully get data", data: user });

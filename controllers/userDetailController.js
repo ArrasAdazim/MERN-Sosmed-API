@@ -1,4 +1,5 @@
 const UserDetail = require("../models/userDetail");
+const Follow = require("../models/follow");
 
 const createUserDetail = async (req, res) => {
   const { firstName, lastName, address, bio, phone } = req.body;
@@ -52,10 +53,22 @@ const getUserDetail = async (req, res) => {
         data: null,
       });
     }
+    // Jumlah pengikut (followers)
+    const followersCount = await Follow.countDocuments({
+      followingId: req.user.id,
+    });
+
+    // Jumlah yang diikuti (following)
+    const followingCount = await Follow.countDocuments({
+      followerId: req.user.id,
+    });
+
     const response = {
       status: "OK",
       message: "SUCCESSFULLY USER DETAIL",
       data: userDetail,
+      followersCount,
+      followingCount,
     };
 
     res.status(200).json(response);
@@ -122,9 +135,27 @@ const deleteUserDetail = async (req, res) => {
   } catch (error) {}
 };
 
+const getAll = async (req, res) => {
+  try {
+    const user = await UserDetail.find();
+    res.status(200).json({
+      status: "OK",
+      message: "Successfully get data",
+      data: user,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "Failed",
+      message: "Failed get data",
+      data: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUserDetail,
   getUserDetail,
   updateUserDetail,
   deleteUserDetail,
+  getAll
 };
