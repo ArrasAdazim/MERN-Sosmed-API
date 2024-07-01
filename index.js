@@ -3,6 +3,8 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const userDetailRoutes = require("./routes/userDetail");
 const followRoutes = require("./routes/followRoute");
+const postRoute = require("./routes/postRoute");
+const bookmarkRoute = require("./routes/bookmarkRoute");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -30,6 +32,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/user-details", userDetailRoutes);
 app.use("/api", followRoutes);
+app.use("/api/post", postRoute);
+app.use("/api/bookmark", bookmarkRoute);
 app.get("/", function (req, res) {
   res.send("Hello World! ");
 });

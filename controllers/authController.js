@@ -4,6 +4,7 @@ const generateOtp = require("../utils/otp");
 const sendOtp = require("../utils/email");
 require("dotenv").config();
 const User = require("../models/user");
+const UserDetail = require("../models/userDetail");
 
 const register = async (req, res) => {
   try {
@@ -33,6 +34,54 @@ const register = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    res
+      .status(400)
+      .json({ status: "BAD REQUEST", message: err.message, data: null });
+  }
+};
+
+const registerDetail = async (req, res) => {
+  const { email, password, firstName, lastName, address, bio, phone } =
+    req.body;
+
+  const checkEmail = await User.findOne({ email });
+  if (checkEmail) {
+    return res.status(400).json({
+      status: "BAD REQUEST",
+      message: "Email is already registered",
+      data: null,
+    });
+  }
+
+  const hashPassword = await bcrypt.hash(password, 10);
+
+  try {
+    const user = await User.create({ email, password: hashPassword });
+    const otp = generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 menit
+
+    user.otp = otp;
+    user.otpExpiresAt = otpExpiresAt;
+    await user.save();
+    await sendOtp(email, otp);
+
+    const userDetail = await UserDetail.create({
+      userId: user.id,
+      firstName,
+      lastName,
+      address,
+      bio,
+      phone,
+    });
+    res.status(201).json({
+      status: "CREATED",
+      message: "User registered. Check your email for OTP.",
+      data: {
+        user,
+        userDetail,
+      },
+    });
+  } catch (error) {
     res
       .status(400)
       .json({ status: "BAD REQUEST", message: err.message, data: null });
@@ -269,4 +318,5 @@ module.exports = {
   getUserById,
   resetPassword,
   forgetPassword,
+  registerDetail,
 };

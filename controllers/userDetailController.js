@@ -132,7 +132,13 @@ const deleteUserDetail = async (req, res) => {
     res
       .status(200)
       .json({ status: "OK", message: "User deleted successfully" });
-  } catch (error) {}
+  } catch (error) {
+    res.status(400).json({
+      status: "BAD REQUEST",
+      message: error.message,
+      data: null,
+    });
+  }
 };
 
 const getAll = async (req, res) => {
@@ -157,5 +163,5 @@ module.exports = {
   getUserDetail,
   updateUserDetail,
   deleteUserDetail,
-  getAll
+  getAll,
 };
