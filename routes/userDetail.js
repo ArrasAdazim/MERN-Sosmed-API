@@ -8,10 +8,11 @@ const {
   deleteUserDetail,
   getAll,
 } = require("../controllers/userDetailController");
+const upload = require("../utils/upload");
 
-router.post("/", authenticate, createUserDetail);
+router.post("/", upload.single("imageUrl"), authenticate, createUserDetail);
 router.get("/me", authenticate, getUserDetail);
-router.put("/", authenticate, updateUserDetail);
+router.put("/", upload.single("imageUrl"), authenticate, updateUserDetail);
 router.delete("/", authenticate, deleteUserDetail);
 router.get("/all", getAll);
 

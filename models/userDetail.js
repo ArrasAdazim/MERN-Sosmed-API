@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const UserDetailSchema = new mongoose.Schema(
   {
     userId: {
@@ -24,6 +23,11 @@ const UserDetailSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+    },
+    imageUrl: {
+      type: String,
+      default: "https://placehold.co/600x400.png",
+      required: true,
     },
   },
   {

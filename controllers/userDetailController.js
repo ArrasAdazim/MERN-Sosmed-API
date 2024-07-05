@@ -3,6 +3,7 @@ const Follow = require("../models/follow");
 
 const createUserDetail = async (req, res) => {
   const { firstName, lastName, address, bio, phone } = req.body;
+  const imageUrl = req.file.path;
 
   try {
     const user = await UserDetail.findOne({ userId: req.user.id });
@@ -22,6 +23,7 @@ const createUserDetail = async (req, res) => {
       address,
       bio,
       phone,
+      imageUrl,
     });
 
     const response = {
@@ -83,6 +85,7 @@ const getUserDetail = async (req, res) => {
 
 const updateUserDetail = async (req, res) => {
   const { firstName, lastName, address, bio, phone } = req.body;
+  const imageUrl = req.file.path;
 
   try {
     const userDetail = await UserDetail.findOne({ userId: req.user.id });
@@ -100,6 +103,7 @@ const updateUserDetail = async (req, res) => {
     userDetail.address = address || userDetail.address;
     userDetail.bio = bio || userDetail.bio;
     userDetail.phone = phone || userDetail.phone;
+    userDetail.imageUrl = imageUrl || userDetail.imageUrl;
     await userDetail.save();
     const response = {
       status: "OK",

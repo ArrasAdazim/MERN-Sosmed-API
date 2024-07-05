@@ -44,6 +44,8 @@ const registerDetail = async (req, res) => {
   const { email, password, firstName, lastName, address, bio, phone } =
     req.body;
 
+  const imageUrl = req.file.path;
+
   const checkEmail = await User.findOne({ email });
   if (checkEmail) {
     return res.status(400).json({
@@ -72,6 +74,7 @@ const registerDetail = async (req, res) => {
       address,
       bio,
       phone,
+      imageUrl,
     });
     res.status(201).json({
       status: "CREATED",
@@ -82,9 +85,10 @@ const registerDetail = async (req, res) => {
       },
     });
   } catch (error) {
+    console.log("error", error);
     res
       .status(400)
-      .json({ status: "BAD REQUEST", message: err.message, data: null });
+      .json({ status: "BAD REQUEST", message: error.message, data: null });
   }
 };
 
